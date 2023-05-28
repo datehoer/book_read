@@ -33,6 +33,9 @@ func (h *booksHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	defer dbConn.Close()
 
 	pageStr := r.URL.Query().Get("page")
+	if pageStr == "" {
+		pageStr = "1"
+	}
 	page, err := strconv.Atoi(pageStr)
 	if err != nil {
 		http.Error(w, "Invalid page number", http.StatusBadRequest)
@@ -137,11 +140,8 @@ func (h *articleHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// 解析 URL 中的参数
 	params := r.URL.Query()
 
-	// 获取 book_id 参数
-	bookID := params.Get("book_id")
-
 	// 获取 id 参数
-	idStr := params.Get("id")
+	idStr := params.Get("article_id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		http.Error(w, "Invalid chapter ID", http.StatusBadRequest)
@@ -150,7 +150,7 @@ func (h *articleHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// 查询章节内容
 	var article Article
-	err = dbConn.QueryRow("SELECT id, book_id, title, content_html FROM book WHERE book_id = ? and  id = ?", bookID, id).Scan(&article.ID, &article.BookID, &article.Title, &article.Content)
+	err = dbConn.QueryRow("SELECT id, book_id, title, content_html FROM book WHERE id = ?", id).Scan(&article.ID, &article.BookID, &article.Title, &article.Content)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
