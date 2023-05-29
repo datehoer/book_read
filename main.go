@@ -2,10 +2,14 @@ package main
 
 import (
 	"book_api/db"
+	"crypto/md5"
+	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 type booksHandler struct{}
@@ -22,6 +26,45 @@ type Article struct {
 	Title   string `json:"title"`
 	Content string `json:"content"`
 	Num     int    `json:"num"`
+}
+
+func authMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// 检查是否存在登录的认证 Cookie
+		cookie, err := r.Cookie("auth")
+		if err != nil || cookie.Value == "" {
+			// 未登录，返回未授权的错误响应
+			http.Error(w, "未登录", http.StatusUnauthorized)
+			return
+		}
+
+		// 在这里进行其他权限验证逻辑，比如验证 Cookie 的合法性、权限等
+		dbConn, err := db.ConnectDB()
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		defer dbConn.Close()
+
+		res, err := dbConn.Query("select username from book_user where cookie = ?", cookie.Value)
+		if err != nil {
+			http.Error(w, "登录信息过期", http.StatusInternalServerError)
+			return
+		}
+		defer res.Close()
+		if res.Next() {
+			var username string
+			err := res.Scan(&username)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			next.ServeHTTP(w, r)
+		} else {
+			http.Error(w, "登录信息过期", http.StatusInternalServerError)
+			return
+		}
+	})
 }
 
 func (h *booksHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -160,9 +203,146 @@ func (h *articleHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(article)
 }
 
+type User struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+type registerHandler struct{}
+
+func (h *registerHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "无效的请求方法", http.StatusMethodNotAllowed)
+		return
+	}
+	var user User
+	err := json.NewDecoder(r.Body).Decode(&user)
+	if err != nil {
+		http.Error(w, "无效的请求数据", http.StatusBadRequest)
+		return
+	}
+	dbConn, err := db.ConnectDB()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer dbConn.Close()
+	res, err := dbConn.Exec("insert into book_user(username, password) values (?, ?)", user.Username, user.Password)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	rowsAffected, err := res.RowsAffected()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	fmt.Println(rowsAffected)
+	w.WriteHeader(http.StatusCreated)
+	w.Write([]byte("注册成功"))
+}
+
+type loginHandler struct{}
+
+func (h *loginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "无效的请求方法", http.StatusMethodNotAllowed)
+		return
+	}
+	var user User
+	err := json.NewDecoder(r.Body).Decode(&user)
+	if err != nil {
+		http.Error(w, "无效的请求数据", http.StatusBadRequest)
+		return
+	}
+	dbConn, err := db.ConnectDB()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer dbConn.Close()
+	res, err := dbConn.Query("select id, password from book_user where username = ?", user.Username)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer res.Close()
+	if res.Next() {
+		var userID string
+		var storedPassword string
+		err := res.Scan(&userID, &storedPassword)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		if user.Password != storedPassword {
+			http.Error(w, "用户名或密码不正确", http.StatusUnauthorized)
+			return
+		}
+		authValue := user.Username + user.Password
+		cookieValue := md5Hash(authValue)
+		res, err := dbConn.Exec("update book_user set cookie = ? where id = ?", cookieValue, userID)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		rowsAffected, err := res.RowsAffected()
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		fmt.Println(rowsAffected)
+		cookie := &http.Cookie{
+			Name:    "auth",
+			Value:   cookieValue,
+			Expires: time.Now().Add(24 * time.Hour), // 设置Cookie过期时间
+		}
+		http.SetCookie(w, cookie)
+
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("登录成功"))
+	} else {
+		http.Error(w, "用户名或密码不正确", http.StatusUnauthorized)
+	}
+}
+
+func md5Hash(text string) string {
+	hash := md5.Sum([]byte(text))
+	return hex.EncodeToString(hash[:])
+}
+
+func corsMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// 设置允许的源
+		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:8081")
+		// 设置允许的请求方法
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+		// 设置允许的请求头
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		// 允许携带 cookie
+		w.Header().Set("Access-Control-Allow-Credentials", "true")
+
+		if r.Method == "OPTIONS" {
+			// 如果是 OPTIONS 请求，直接返回成功响应
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
+		// 继续处理其他请求
+		next.ServeHTTP(w, r)
+	})
+}
+
 func main() {
-	http.Handle("/books", &booksHandler{})
-	http.Handle("/book/", http.StripPrefix("/book", &bookHandler{}))
-	http.Handle("/article/", http.StripPrefix("/article", &articleHandler{}))
+	booksHandler := &booksHandler{}
+	bookHandler := &bookHandler{}
+	articleHandler := &articleHandler{}
+	registerHandler := &registerHandler{}
+	loginHandler := &loginHandler{}
+	http.Handle("/register", registerHandler)
+	http.Handle("/login", corsMiddleware(loginHandler))
+	http.Handle("/books", authMiddleware(booksHandler))
+	http.Handle("/book/", http.StripPrefix("/book", authMiddleware(bookHandler)))
+	http.Handle("/article/", http.StripPrefix("/article", authMiddleware(articleHandler)))
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
