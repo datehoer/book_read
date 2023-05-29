@@ -30,11 +30,11 @@
         username: this.username,
         password: this.password,
       };
-
+      axios.defaults.baseURL='/api'
       // 发送登录请求
       axios.create({
         withCredentials: true,
-      }).post('http://10.200.6.167:8080/login', credentials)
+      }).post('/login', credentials)
         .then(response => {
           // 处理登录成功的情况
           // 根据后端返回的响应进行相应的处理

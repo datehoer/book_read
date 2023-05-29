@@ -293,9 +293,11 @@ func (h *loginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		fmt.Println(rowsAffected)
 		cookie := &http.Cookie{
-			Name:    "auth",
-			Value:   cookieValue,
-			Expires: time.Now().Add(24 * time.Hour), // 设置Cookie过期时间
+			Name:     "auth",
+			Value:    cookieValue,
+			Expires:  time.Now().Add(24 * time.Hour), // 设置Cookie过期时间
+			Path:     "/",
+			HttpOnly: true,
 		}
 		http.SetCookie(w, cookie)
 

@@ -43,3 +43,8 @@
 - 参数：
     - username (必需)：用户名
     - password (必需)：用户密码
+
+
+#### bug记录
+本地测试的时候发现前端vue无法根据set-cookie设置cookie
+于是各种修改，最后发现应该增加cookie的path和httponly就可以了。

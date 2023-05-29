@@ -2,9 +2,9 @@
   <div>
     <h1>图书列表</h1>
     <ul>
-      <li v-for="book in books" :key="book.id">
-        <router-link :to="{ name: 'BookDetails', params: { id: book.id } }">
-          {{ book.title }}
+      <li v-for="book in books" :key="book.book_id">
+        <router-link :to="{ name: 'book', params: { id: book.book_id } }">
+          {{ book.book_name }}
         </router-link>
       </li>
     </ul>
@@ -30,10 +30,11 @@ export default {
   },
   methods: {
     getAllBooks() {
-      axios
-        .get("http://127.0.0.1:8080/books")
+      axios.defaults.baseURL='/api'
+      axios.get("/books")
         .then((response) => {
           this.books = response.data;
+          console.log(response.data)
         })
         .catch((error) => {
           console.error(error);
