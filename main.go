@@ -359,15 +359,59 @@ func corsMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+type searchHandler struct{}
+
+func (h *searchHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	dbConn, err := db.ConnectDB()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer dbConn.Close()
+
+	// 解析 URL 中的参数
+	params := r.URL.Query()
+
+	// 获取 book_id 参数
+	keyWord := params.Get("search_keyword")
+	// 查询书籍的详细信息
+	bookSql := "SELECT book_id, book_name, tag_name, COUNT(book_id) AS article_count FROM book WHERE book_name like ? GROUP BY book_id, book_name, tag_name"
+	rows, err := dbConn.Query(bookSql, "%"+keyWord+"%")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	var books []Book
+	for rows.Next() {
+		var book Book
+		err := rows.Scan(&book.BookId, &book.BookName, &book.Tag, &book.ArticleCount)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		books = append(books, book)
+	}
+
+	if err := rows.Err(); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(books)
+}
+
 func main() {
 	booksHandler := &booksHandler{}
 	bookHandler := &bookHandler{}
 	articleHandler := &articleHandler{}
 	registerHandler := &registerHandler{}
 	loginHandler := &loginHandler{}
+	searchHandler := &searchHandler{}
 	http.Handle("/register", registerHandler)
 	http.Handle("/login", corsMiddleware(loginHandler))
 	http.Handle("/books", authMiddleware(booksHandler))
+	http.Handle("/search/", http.StripPrefix("/search", authMiddleware(searchHandler)))
 	http.Handle("/book/", http.StripPrefix("/book", authMiddleware(bookHandler)))
 	http.Handle("/article/", http.StripPrefix("/article", authMiddleware(articleHandler)))
 	log.Fatal(http.ListenAndServe(":8089", nil))

@@ -1,21 +1,10 @@
 <template>
   <van-form @submit="login">
     <van-cell-group inset>
-      <van-field
-        v-model="username"
-        name="用户名"
-        label="用户名"
-        placeholder="用户名"
-        :rules="[{ required: true, message: '请填写用户名' }]"
-      />
-      <van-field
-        v-model="password"
-        type="password"
-        name="密码"
-        label="密码"
-        placeholder="密码"
-        :rules="[{ required: true, message: '请填写密码' }]"
-      />
+      <van-field v-model="username" name="用户名" label="用户名" placeholder="用户名"
+        :rules="[{ required: true, message: '请填写用户名' }]" />
+      <van-field v-model="password" type="password" name="密码" label="密码" placeholder="密码"
+        :rules="[{ required: true, message: '请填写密码' }]" />
     </van-cell-group>
     <div style="margin: 16px">
       <van-button round block type="primary" native-type="submit">
@@ -25,8 +14,8 @@
   </van-form>
 </template>
   
-  <script>
-//   import { useRouter } from 'vue-router';
+<script>
+// import { useRouter } from 'vue-router';
 import axios from "axios";
 export default {
   data() {
@@ -50,23 +39,17 @@ export default {
         })
         .post("/login", credentials)
         .then((response) => {
-          // 处理登录成功的情况
-          // 根据后端返回的响应进行相应的处理
           console.log(response);
           if (redirect) {
-            //存在回跳地址就回跳
             this.$router.push(redirect);
           } else {
-            //否则就跳到默认的首页
+
             this.$router.push({
               name: "home",
             });
           }
-          // 其他操作，例如页面跳转等
         })
         .catch((error) => {
-          // 处理登录失败的情况
-          // 根据后端返回的错误信息进行相应的处理
           console.error(error);
         });
     },
@@ -74,7 +57,7 @@ export default {
 };
 </script>
   
-  <style scoped>
+<style scoped>
 .login {
   max-width: 300px;
   margin: 0 auto;

@@ -1,7 +1,7 @@
 import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
-import { Button, Form, Field, Pagination,List, Cell, CellGroup, Col, Row  } from 'vant';
+import { Button, Form, Field, Pagination,List, Cell, CellGroup, Col, Row, Search } from 'vant';
 
 import 'vant/lib/index.css';
 
@@ -15,5 +15,6 @@ createApp(App)
 .use(Cell)
 .use(Col)
 .use(Row)
+.use(Search)
 .use(router)
 .mount('#app');
