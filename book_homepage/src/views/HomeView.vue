@@ -2,12 +2,14 @@
   <div>
     <h1>图书列表</h1>
     <ul>
+        
       <li v-for="book in books" :key="book.book_id">
         <router-link :to="{ name: 'book', params: { id: book.book_id } }">
           {{ book.book_name }}
         </router-link>
       </li>
     </ul>
+    <van-pagination v-model="currentPage" :page-count="pageCount" mode="simple" @click="getMoreBooks"/>
   </div>
 </template>
 
@@ -17,12 +19,11 @@ import axios from "axios";
 
 export default {
   name: "HomeView",
-  //   components: {
-  //     HelloWorld
-  //   }
   data() {
     return {
       books: [],
+      currentPage: 1,
+      pageCount: 0,
     };
   },
   created() {
@@ -33,13 +34,26 @@ export default {
       axios.defaults.baseURL='/api'
       axios.get("/books")
         .then((response) => {
-          this.books = response.data;
+          this.books = response.data.books;
+          this.pageCount = response.data.pageCount;
           console.log(response.data)
         })
         .catch((error) => {
           console.error(error);
         });
     },
+    getMoreBooks(){
+        axios.defaults.baseURL='/api'
+        axios.get("/books?page="+this.currentPage)
+            .then((response) => {
+            this.books = response.data.books;
+            this.pageCount = response.data.pageCount;
+            console.log(response.data)
+            })
+            .catch((error) => {
+            console.error(error);
+            });
+    }
   },
 };
 </script>

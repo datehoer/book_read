@@ -1,60 +1,83 @@
 <template>
-    <div class="login">
-      <h2>Login</h2>
-      <form @submit.prevent="login">
-        <div>
-          <label for="username">Username:</label>
-          <input type="text" id="username" v-model="username" required>
-        </div>
-        <div>
-          <label for="password">Password:</label>
-          <input type="password" id="password" v-model="password" required>
-        </div>
-        <button type="submit">Login</button>
-      </form>
+  <van-form @submit="login">
+    <van-cell-group inset>
+      <van-field
+        v-model="username"
+        name="用户名"
+        label="用户名"
+        placeholder="用户名"
+        :rules="[{ required: true, message: '请填写用户名' }]"
+      />
+      <van-field
+        v-model="password"
+        type="password"
+        name="密码"
+        label="密码"
+        placeholder="密码"
+        :rules="[{ required: true, message: '请填写密码' }]"
+      />
+    </van-cell-group>
+    <div style="margin: 16px">
+      <van-button round block type="primary" native-type="submit">
+        提交
+      </van-button>
     </div>
-  </template>
+  </van-form>
+</template>
   
   <script>
-  import axios from "axios";
-  export default {
-    data() {
-      return {
-        username: '',
-        password: '',
-      };
-    },
-    methods: {
-      login() {
-        const credentials = {
+//   import { useRouter } from 'vue-router';
+import axios from "axios";
+export default {
+  data() {
+    return {
+      username: "",
+      password: "",
+    };
+  },
+  methods: {
+    login() {
+      const credentials = {
         username: this.username,
         password: this.password,
       };
-      axios.defaults.baseURL='/api'
+      axios.defaults.baseURL = "/api";
+      const redirect = this.$route.query.redirect;
       // 发送登录请求
-      axios.create({
-        withCredentials: true,
-      }).post('/login', credentials)
-        .then(response => {
+      axios
+        .create({
+          withCredentials: true,
+        })
+        .post("/login", credentials)
+        .then((response) => {
           // 处理登录成功的情况
           // 根据后端返回的响应进行相应的处理
           console.log(response);
+          if (redirect) {
+            //存在回跳地址就回跳
+            this.$router.push(redirect);
+          } else {
+            //否则就跳到默认的首页
+            this.$router.push({
+              name: "home",
+            });
+          }
           // 其他操作，例如页面跳转等
         })
-        .catch(error => {
+        .catch((error) => {
           // 处理登录失败的情况
           // 根据后端返回的错误信息进行相应的处理
           console.error(error);
         });
-      },
     },
-  };
-  </script>
+  },
+};
+</script>
   
   <style scoped>
-  .login {
-    max-width: 300px;
-    margin: 0 auto;
-  }
-  </style>
+.login {
+  max-width: 300px;
+  margin: 0 auto;
+}
+</style>
   

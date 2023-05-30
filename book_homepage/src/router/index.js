@@ -1,7 +1,7 @@
-import {createRouter, createWebHistory} from "vue-router";
-import HomeView from "../views/HomeView.vue";
-import BookDetails from "../views/BookDetails.vue";
-import ArticleDetails from "../views/ArticleDetails.vue";
+import { createRouter, createWebHistory } from "vue-router"
+import HomeView from "../views/HomeView.vue"
+import BookDetails from "../views/BookDetails.vue"
+import ArticleDetails from "../views/ArticleDetails.vue"
 const routes = [
     {
         path: "/",
@@ -34,11 +34,36 @@ const routes = [
         name: "article",
         component: ArticleDetails,
     },
-];
+]
 
 const router = createRouter({
     history: createWebHistory(process.env.BASE_URL),
     routes,
-});
+})
 
-export default router;
+router.beforeEach((to, from, next) => {
+    const isLoggedIn = checkIfUserIsLoggedIn("auth") // 你可以根据实际情况检查用户是否已登录
+    if (to.name !== "login" && !isLoggedIn) {
+        next({
+            name: "login",
+            query: {
+                redirect: to.path
+            }
+        }) // 如果用户未登录且访问的页面不是登录页，则跳转到登录页
+    } else {
+        next() // 继续导航到目标页面
+    }
+})
+
+function checkIfUserIsLoggedIn(cookieName) {
+    const cookies = document.cookie.split(";")
+    for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim()
+        if (cookie.startsWith(cookieName + "=")) {
+            return true
+        }
+    }
+    return false
+}
+
+export default router

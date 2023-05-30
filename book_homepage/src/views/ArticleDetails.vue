@@ -1,7 +1,7 @@
 <template>
     <div>
+        <van-button type="primary" @click="back">返回上一页</van-button>
       <h1>{{ article.title }}</h1>
-      <p>作者：{{ article.author }}</p>
       <p v-html="article.content"></p>
       <!-- 其他文章详细信息 -->
     </div>
@@ -30,7 +30,15 @@
           .catch(error => {
             console.error(error);
           });
+      },
+      back() {
+      if (window.history.length <= 1) {
+        this.$router.push({ path: "/" });
+        return false;
+      } else {
+        this.$router.go(-1);
       }
+    },
     }
   };
   </script>

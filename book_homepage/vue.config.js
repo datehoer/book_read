@@ -6,7 +6,7 @@ module.exports = {
   devServer: {
     proxy: {
       '/api': {
-        target: 'http://127.0.0.1:8080',
+        target: 'http://127.0.0.1:8089',
         // 修改为以下配置
         changOrigin: true,
         pathRewrite: {
@@ -14,7 +14,7 @@ module.exports = {
         },
       },
       '/book': {
-        target: 'http://127.0.0.1:8080',
+        target: 'http://127.0.0.1:8089',
         // 修改为以下配置
         changOrigin: true,
         pathRewrite: {
@@ -22,7 +22,7 @@ module.exports = {
         },
       },
       '/article': {
-        target: 'http://127.0.0.1:8080',
+        target: 'http://127.0.0.1:8089',
         // 修改为以下配置
         changOrigin: true,
         pathRewrite: {

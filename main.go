@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"math"
 	"net/http"
 	"strconv"
 	"time"
@@ -67,6 +68,11 @@ func authMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+type BooksResponse struct {
+	Books     []*Book `json:"books"`
+	PageCount int     `json:"pageCount"`
+}
+
 func (h *booksHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	dbConn, err := db.ConnectDB()
 	if err != nil {
@@ -86,13 +92,17 @@ func (h *booksHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	offset := (page - 1) * 10
 	query := "SELECT book_id, book_name, tag_name, COUNT(book_id) AS article_count FROM book GROUP BY book_id, book_name, tag_name LIMIT 10 OFFSET ? "
+	selectAll := "SELECT count(DISTINCT book_id) from book"
 	rows, err := dbConn.Query(query, offset)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	defer rows.Close()
-	books := make([]*Book, 0)
+	booksResponse := BooksResponse{
+		Books:     make([]*Book, 0),
+		PageCount: 0,
+	}
 	for rows.Next() {
 		var book Book
 		err := rows.Scan(&book.BookId, &book.BookName, &book.Tag, &book.ArticleCount)
@@ -100,14 +110,29 @@ func (h *booksHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		books = append(books, &book)
+		booksResponse.Books = append(booksResponse.Books, &book)
 	}
 	if err := rows.Err(); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	count, err := dbConn.Query(selectAll)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	for count.Next() {
+		var bookCount int
+		err := count.Scan(&bookCount)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		booksResponse.PageCount = int(math.Ceil(float64(bookCount) / 10))
+	}
+	defer rows.Close()
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(books)
+	json.NewEncoder(w).Encode(booksResponse)
 }
 
 type bookHandler struct{}
@@ -293,11 +318,10 @@ func (h *loginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		fmt.Println(rowsAffected)
 		cookie := &http.Cookie{
-			Name:     "auth",
-			Value:    cookieValue,
-			Expires:  time.Now().Add(24 * time.Hour), // 设置Cookie过期时间
-			Path:     "/",
-			HttpOnly: true,
+			Name:    "auth",
+			Value:   cookieValue,
+			Expires: time.Now().Add(24 * time.Hour), // 设置Cookie过期时间
+			Path:    "/",
 		}
 		http.SetCookie(w, cookie)
 
@@ -346,5 +370,5 @@ func main() {
 	http.Handle("/books", authMiddleware(booksHandler))
 	http.Handle("/book/", http.StripPrefix("/book", authMiddleware(bookHandler)))
 	http.Handle("/article/", http.StripPrefix("/article", authMiddleware(articleHandler)))
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(http.ListenAndServe(":8089", nil))
 }
