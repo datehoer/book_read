@@ -1,6 +1,6 @@
 <template>
     <div>
-        <van-button type="primary" @click="back">返回上一页</van-button>
+        <button type="primary" @click="back">返回上一页</button>
       <h1>{{ article.title }}</h1>
       <p v-html="article.content"></p>
       <!-- 其他文章详细信息 -->

@@ -2,14 +2,22 @@
   <div>
     <h1>图书列表</h1>
     <ul>
-        
       <li v-for="book in books" :key="book.book_id">
         <router-link :to="{ name: 'book', params: { id: book.book_id } }">
           {{ book.book_name }}
         </router-link>
       </li>
     </ul>
-    <van-pagination v-model="currentPage" :page-count="pageCount" mode="simple" @click="getMoreBooks"/>
+    <!-- 上一页按钮 -->
+    <button v-if="currentPage > 1" @click="previousPage">上一页</button>
+
+    <!-- 下一页按钮 -->
+    <button v-if="currentPage < pageCount" @click="nextPage">下一页</button>
+
+    <!-- 显示当前页码和总页数 -->
+    <p>当前页码: {{ currentPage }}</p>
+    <p>总页数: {{ pageCount }}</p>
+
   </div>
 </template>
 
@@ -53,6 +61,18 @@ export default {
             .catch((error) => {
             console.error(error);
             });
+    },
+    previousPage() {
+      if (this.currentPage > 1) {
+        this.currentPage--;
+        this.getMoreBooks();
+      }
+    },
+    nextPage() {
+      if (this.currentPage < this.pageCount) {
+        this.currentPage++;
+        this.getMoreBooks();
+      }
     }
   },
 };

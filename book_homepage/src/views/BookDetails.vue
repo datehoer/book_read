@@ -1,6 +1,6 @@
 <template>
   <div>
-    <van-button type="primary" @click="back">返回上一页</van-button>
+    <button type="primary" @click="back">返回上一页</button>
     <h1>{{ book.book.book_name }}</h1>
     <p v-if="book.book.tag">标签：{{ book.book.tag }}</p>
     <p v-if="book.book.article_count">

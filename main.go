@@ -408,11 +408,11 @@ func main() {
 	registerHandler := &registerHandler{}
 	loginHandler := &loginHandler{}
 	searchHandler := &searchHandler{}
-	http.Handle("/register", registerHandler)
-	http.Handle("/login", corsMiddleware(loginHandler))
-	http.Handle("/books", authMiddleware(booksHandler))
-	http.Handle("/search/", http.StripPrefix("/search", authMiddleware(searchHandler)))
-	http.Handle("/book/", http.StripPrefix("/book", authMiddleware(bookHandler)))
-	http.Handle("/article/", http.StripPrefix("/article", authMiddleware(articleHandler)))
+	http.Handle("/api/register", registerHandler)
+	http.Handle("/api/login", corsMiddleware(loginHandler))
+	http.Handle("/api/books", authMiddleware(booksHandler))
+	http.Handle("/api/search/", http.StripPrefix("/api/search", authMiddleware(searchHandler)))
+	http.Handle("/api/book/", http.StripPrefix("/api/book", authMiddleware(bookHandler)))
+	http.Handle("/api/article/", http.StripPrefix("/api/article", authMiddleware(articleHandler)))
 	log.Fatal(http.ListenAndServe(":8089", nil))
 }
