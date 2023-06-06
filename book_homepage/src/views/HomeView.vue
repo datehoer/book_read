@@ -1,5 +1,7 @@
 <template>
   <div>
+    <input type="text" name="" id="" placeholder="关键词" v-model="keyword">
+    <button type="primary" @click="search">搜索</button>
     <h1>图书列表</h1>
     <ul>
       <li v-for="book in books" :key="book.book_id">
@@ -32,6 +34,7 @@ export default {
       books: [],
       currentPage: 1,
       pageCount: 0,
+      keyword: "",
     };
   },
   created() {
@@ -73,6 +76,18 @@ export default {
         this.currentPage++;
         this.getMoreBooks();
       }
+    },
+    search(){
+        axios.defaults.baseURL='/api'
+        axios.get("/search?keyword="+this.keyword)
+            .then((response) => {
+            this.books = response.data.books;
+            this.pageCount = 0;
+            console.log(response.data)
+            })
+            .catch((error) => {
+            console.error(error);
+            });
     }
   },
 };
