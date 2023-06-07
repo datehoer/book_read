@@ -45,7 +45,7 @@
           axios.defaults.baseURL='/api'
           axios.get("/books?page="+this.currentPage)
               .then((response) => {
-              this.books = response.data.books;
+              this.books = {"books": response.data};
               this.pageCount = response.data.pageCount;
               console.log(response.data)
               })

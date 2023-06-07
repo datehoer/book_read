@@ -47,7 +47,7 @@ export default {
         .then((response) => {
           this.books = response.data.books;
           this.pageCount = response.data.pageCount;
-          console.log(response.data)
+          console.log(this.books)
         })
         .catch((error) => {
           console.error(error);
@@ -59,7 +59,7 @@ export default {
             .then((response) => {
             this.books = response.data.books;
             this.pageCount = response.data.pageCount;
-            console.log(response.data)
+            console.log(this.books)
             })
             .catch((error) => {
             console.error(error);
@@ -79,11 +79,11 @@ export default {
     },
     search(){
         axios.defaults.baseURL='/api'
-        axios.get("/search?keyword="+this.keyword)
+        axios.get("/search?search_keyword="+this.keyword)
             .then((response) => {
-            this.books = response.data.books;
+            this.books = response.data;
             this.pageCount = 0;
-            console.log(response.data)
+            console.log(this.books)
             })
             .catch((error) => {
             console.error(error);
