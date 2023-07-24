@@ -218,7 +218,7 @@ func (h *articleHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// 查询章节内容
 	var article Article
-	err = dbConn.QueryRow("SELECT id, book_id, title, content_html FROM book WHERE id = ?", id).Scan(&article.ID, &article.BookID, &article.Title, &article.Content)
+	err = dbConn.QueryRow("SELECT id, book_id, title, change_content_html FROM book WHERE id = ?", id).Scan(&article.ID, &article.BookID, &article.Title, &article.Content)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -381,7 +381,10 @@ func (h *searchHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	var books []Book
+	booksResponse := BooksResponse{
+		Books:     make([]*Book, 0),
+		PageCount: 0,
+	}
 	for rows.Next() {
 		var book Book
 		err := rows.Scan(&book.BookId, &book.BookName, &book.Tag, &book.ArticleCount)
@@ -389,7 +392,7 @@ func (h *searchHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		books = append(books, book)
+		booksResponse.Books = append(booksResponse.Books, &book)
 	}
 
 	if err := rows.Err(); err != nil {
@@ -398,7 +401,7 @@ func (h *searchHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(books)
+	json.NewEncoder(w).Encode(booksResponse)
 }
 
 func main() {
