@@ -31,7 +31,7 @@ export default {
         username: this.username,
         password: this.password,
       };
-      axios.defaults.baseURL = "/api";
+      axios.defaults.baseURL = "http://127.0.0.1:8089/api";
       const redirect = this.$route.query.redirect;
       // 发送登录请求
       axios
@@ -44,7 +44,6 @@ export default {
           if (redirect) {
             this.$router.push(redirect);
           } else {
-
             this.$router.push({
               name: "home",
             });

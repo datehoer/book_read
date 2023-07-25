@@ -81,12 +81,13 @@ export default {
         axios.defaults.baseURL='/api'
         axios.get("/search?search_keyword="+this.keyword)
             .then((response) => {
-            this.books = response.data;
-            this.pageCount = 0;
-            console.log(this.books)
+                console.log(response)
+                this.books = response.data.books.books;
+                this.pageCount = 0;
+                console.log(this.books)
             })
             .catch((error) => {
-            console.error(error);
+                console.error(error);
             });
     }
   },

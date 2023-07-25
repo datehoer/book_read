@@ -321,7 +321,6 @@ func (h *loginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			Name:    "auth",
 			Value:   cookieValue,
 			Expires: time.Now().Add(24 * time.Hour), // 设置Cookie过期时间
-			Path:    "/",
 		}
 		http.SetCookie(w, cookie)
 
@@ -340,7 +339,8 @@ func md5Hash(text string) string {
 func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// 设置允许的源
-		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:8081")
+		//w.Header().Set("Access-Control-Allow-Origin", "http://localhost:8081")
+		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
 		// 设置允许的请求方法
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
 		// 设置允许的请求头
