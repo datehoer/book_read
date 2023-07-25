@@ -344,7 +344,7 @@ func corsMiddleware(next http.Handler) http.Handler {
 		// 设置允许的请求方法
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
 		// 设置允许的请求头
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With")
 		// 允许携带 cookie
 		w.Header().Set("Access-Control-Allow-Credentials", "true")
 
@@ -413,9 +413,9 @@ func main() {
 	searchHandler := &searchHandler{}
 	http.Handle("/api/register", registerHandler)
 	http.Handle("/api/login", corsMiddleware(loginHandler))
-	http.Handle("/api/books", authMiddleware(booksHandler))
-	http.Handle("/api/search/", http.StripPrefix("/api/search", authMiddleware(searchHandler)))
-	http.Handle("/api/book/", http.StripPrefix("/api/book", authMiddleware(bookHandler)))
-	http.Handle("/api/article/", http.StripPrefix("/api/article", authMiddleware(articleHandler)))
+	http.Handle("/api/books", corsMiddleware(authMiddleware(booksHandler)))
+	http.Handle("/api/search/", http.StripPrefix("/api/search", corsMiddleware(authMiddleware(searchHandler))))
+	http.Handle("/api/book/", http.StripPrefix("/api/book", corsMiddleware(authMiddleware(bookHandler))))
+	http.Handle("/api/article/", http.StripPrefix("/api/article", corsMiddleware(authMiddleware(articleHandler))))
 	log.Fatal(http.ListenAndServe(":8089", nil))
 }

@@ -1,40 +1,61 @@
-import React, { useState } from 'react';
-import axiosInstance from '../../api';
+import React, {useState} from "react";
+import ApiService from "../../api";
+import { useNavigate } from "react-router-dom";
+import "./index.css";
 
 function Login() {
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
+    const navigate = useNavigate();
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
 
-    const handleLogin = async () => {
+    const handleLogin = async (e) => {
+        e.preventDefault();
         try {
-            const response = await axiosInstance.post('/api/login', {
-                username,
-                password
-            });
-            console.log(response)
+          await ApiService.login(username, password);
+          navigate("/");
         } catch (error) {
-            if (error.response && error.response.status === 401) {
-                // handle 401 error here, for example:
-                alert('Unauthorized. Please check your username or password.');
-            }
+          if (error.response) {
+            // The request was made and the server responded with a status code
+            // that falls out of the range of 2xx
+            alert(error.response.data.message);
+          } else {
+            // Something happened in setting up the request that triggered an Error
+            alert("Error: " + error.message);
+          }
         }
-    };
+      };
+    
 
     return (
-        <div>
-            <input 
-                type="text" 
-                value={username} 
-                onChange={e => setUsername(e.target.value)} 
-                placeholder="Username"
-            />
-            <input 
-                type="password" 
-                value={password} 
-                onChange={e => setPassword(e.target.value)} 
-                placeholder="Password"
-            />
-            <button onClick={handleLogin}>Login</button>
+        <div className="login-container">
+            <form className="login-form" onSubmit={handleLogin}>
+                <h2>书库登录</h2>
+                <div className="input-group">
+                    <label htmlFor="username">用户名：</label>
+                    <input
+                        type="text"
+                        id="username"
+                        value={username}
+                        placeholder="Username"
+                        onChange={(e) => setUsername(e.target.value)}
+                        required
+                    />
+                </div>
+                <div className="input-group">
+                    <label htmlFor="password">密码：</label>
+                    <input
+                        type="password"
+                        id="password"
+                        placeholder="Password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                    />
+                </div>
+                <button type="submit" className="login-button">
+                    Login
+                </button>
+            </form>
         </div>
     );
 }
