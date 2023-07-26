@@ -1,0 +1,52 @@
+/* BookDetail.css */
+.book-detail {
+    font-family: 'Arial', sans-serif;
+    color: #333;
+    background-color: #f9f9f9;
+    padding: 20px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+.book-detail a {
+    color: #333;
+    text-decoration: none; /* 移除下划线 */
+    font-size: 18px; /* 设置字体大小 */
+    font-weight: bold; /* 设置字体粗细 */
+}
+.book-detail h1 {
+    text-align: center;
+    color: #444;
+}
+
+.book-detail p {
+    margin: 0 0 10px;
+    color: #666;
+}
+
+.book-detail h2 {
+    margin-top: 20px;
+    color: #444;
+}
+
+.book-detail ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.book-detail li {
+    background-color: #fff;
+    box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.1);
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+}
+
+.book-detail li h3 {
+    margin: 0 0 10px;
+    color: #444;
+}
+
+.book-detail li p {
+    margin: 0 0 10px;
+    color: #666;
+}

@@ -39,7 +39,12 @@ body {
     margin-bottom: 20px;
     border-radius: 5px;
 }
-
+.book-list a {
+    color: #333;
+    text-decoration: none; /* 移除下划线 */
+    font-size: 18px; /* 设置字体大小 */
+    font-weight: bold; /* 设置字体粗细 */
+}
 .book-list li h2 {
     margin: 0 0 10px;
     color: #444;
@@ -60,4 +65,18 @@ body {
 .pagination-buttons button {
     flex: 1;
     max-width: 200px; /* Or any other width that you prefer */
+}
+
+.book-list form {
+    display: flex;
+    margin-bottom: 20px;
+}
+
+.book-list input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-family: 'Arial', sans-serif;
+    color: #333;
 }
