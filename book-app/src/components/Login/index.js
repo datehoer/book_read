@@ -2,7 +2,6 @@ import React, { useState } from "react"
 import ApiService from "../../api"
 import { useNavigate } from "react-router-dom"
 import Cookies from 'js-cookie'
-import md5 from 'js-md5'
 import "./index.css"
 
 function Login() {
@@ -13,15 +12,10 @@ function Login() {
     const handleLogin = async (e) => {
         e.preventDefault()
         try {
-            await ApiService.login(username, password)
-            // 创建一个随机字符串
-            const randomString = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-
-            // 创建一个MD5 hash
-            const hash = md5(randomString);
-
-            // 设置cookie
-            Cookies.set('auth', hash, { expires: 1 }); // expires after 1 day
+            const response = await ApiService.login(username, password)
+            const responseContent = response.data
+            const cookieValue = responseContent.split(": ")[1]
+            Cookies.set('auth', cookieValue)
             navigate("/")
         } catch (error) {
             if (error.response) {

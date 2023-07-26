@@ -325,7 +325,7 @@ func (h *loginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.SetCookie(w, cookie)
 
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("登录成功"))
+		w.Write([]byte("登录成功, cookie为: " + cookieValue))
 	} else {
 		http.Error(w, "用户名或密码不正确", http.StatusUnauthorized)
 	}
@@ -340,7 +340,8 @@ func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// 设置允许的源
 		//w.Header().Set("Access-Control-Allow-Origin", "http://localhost:8081")
-		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
+		w.Header().Set("Access-Control-Allow-Origin", "http://124.221.222.201")
+		//w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
 		// 设置允许的请求方法
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
 		// 设置允许的请求头
